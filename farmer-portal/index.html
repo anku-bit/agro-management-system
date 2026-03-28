@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroSense — Farmer Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f7f0; --bg2: #ffffff; --card: #ffffff;
+  --green: #1a7a3e; --green2: #2ddc7a; --green3: #e8f5ee;
+  --border: #d4e8d4; --text: #1a2e1a; --text2: #5a7a5a; --text3: #8aaa8a;
+  --red: #e53e3e; --amber: #d97706; --radius: 16px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* Auth screens */
+.auth-wrap {
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(135deg, #0d2e1a 0%, #1a5c2e 50%, #0a3d1f 100%);
+  padding:20px;
+}
+.auth-card {
+  background:white; border-radius:24px; padding:40px; width:100%; max-width:440px;
+  box-shadow:0 24px 60px rgba(0,0,0,0.3);
+}
+.auth-logo { display:flex; align-items:center; gap:12px; margin-bottom:32px; }
+.auth-logo-icon {
+  width:48px; height:48px; background:linear-gradient(135deg,#2ddc7a,#1a7a3e);
+  border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px;
+}
+.auth-logo h1 { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:var(--text); }
+.auth-logo p { font-size:12px; color:var(--text2); }
+.auth-title { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; margin-bottom:6px; }
+.auth-sub { font-size:13px; color:var(--text2); margin-bottom:28px; }
+
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:12px; font-weight:600; color:var(--text2); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+.form-group input, .form-group select, .form-group textarea {
+  width:100%; padding:12px 14px; border:1.5px solid var(--border);
+  border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px;
+  color:var(--text); background:var(--bg); outline:none; transition:border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--green); background:white; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+.btn {
+  width:100%; padding:14px; border:none; border-radius:12px; font-family:'Syne',sans-serif;
+  font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s;
+}
+.btn-green { background:linear-gradient(135deg,#2ddc7a,#1a7a3e); color:white; }
+.btn-green:hover { opacity:0.9; transform:translateY(-1px); }
+.btn-outline { background:transparent; border:1.5px solid var(--green); color:var(--green); }
+.btn-outline:hover { background:var(--green3); }
+
+.switch-link { text-align:center; margin-top:20px; font-size:13px; color:var(--text2); }
+.switch-link a { color:var(--green); font-weight:600; cursor:pointer; text-decoration:none; }
+
+.msg { padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:16px; }
+.msg.error { background:#fef2f2; color:var(--red); border:1px solid #fecaca; }
+.msg.success { background:#f0fdf4; color:var(--green); border:1px solid #bbf7d0; }
+
+/* Main App */
+.app { display:none; }
+.topbar {
+  background:white; border-bottom:1px solid var(--border); padding:0 24px;
+  height:64px; display:flex; align-items:center; gap:16px; position:sticky; top:0; z-index:50;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.topbar-logo { display:flex; align-items:center; gap:10px; }
+.topbar-logo-icon { width:36px; height:36px; background:linear-gradient(135deg,#2ddc7a,#1a7a3e); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.topbar-logo span { font-family:'Syne',sans-serif; font-weight:700; font-size:16px; }
+.farmer-name { margin-left:auto; font-size:13px; font-weight:500; color:var(--text2); }
+.farmer-name strong { color:var(--text); }
+.btn-sm { padding:7px 16px; border-radius:8px; font-size:12px; font-weight:600; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; }
+.btn-logout { background:#fef2f2; color:var(--red); }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; padding:20px 24px 0; background:white; border-bottom:1px solid var(--border); }
+.tab {
+  padding:10px 20px; border-radius:10px 10px 0 0; font-size:13px; font-weight:600;
+  cursor:pointer; color:var(--text2); transition:all 0.2s; border:none; background:none;
+}
+.tab.active { background:var(--green); color:white; }
+.tab:not(.active):hover { background:var(--green3); color:var(--green); }
+
+.content { padding:24px; max-width:900px; margin:0 auto; }
+
+/* Dashboard cards */
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.stat-card { background:white; border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+.stat-icon { font-size:28px; margin-bottom:8px; }
+.stat-val { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--green); }
+.stat-label { font-size:12px; color:var(--text2); margin-top:2px; }
+
+.card { background:white; border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:16px; }
+.card-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+
+/* Table */
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:10px 12px; background:var(--bg); color:var(--text2); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border); }
+td { padding:12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--green3); }
+
+.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-green { background:#dcfce7; color:#166534; }
+.badge-amber { background:#fef3c7; color:#92400e; }
+.badge-red { background:#fee2e2; color:#991b1b; }
+
+.crop-photo { width:40px; height:40px; border-radius:8px; object-fit:cover; border:1px solid var(--border); }
+.no-photo { width:40px; height:40px; border-radius:8px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:20px; }
+
+.delete-btn { background:#fee2e2; color:#991b1b; border:none; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; font-weight:600; }
+.delete-btn:hover { background:#fecaca; }
+
+/* Photo preview */
+.photo-preview { width:80px; height:80px; border-radius:10px; object-fit:cover; border:2px solid var(--green); display:none; margin-top:8px; }
+
+.empty-state { text-align:center; padding:40px; color:var(--text2); }
+.empty-state .icon { font-size:48px; margin-bottom:12px; }
+
+/* Loader */
+.loader { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.6s linear infinite; vertical-align:middle; margin-right:6px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* Map note */
+.loc-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="auth-wrap" id="loginScreen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🌿</div>
+      <div><h1>AgroSense</h1><p>Farmer Intelligence Portal</p></div>
+    </div>
+    <div class="auth-title">Welcome Back 👋</div>
+    <div class="auth-sub">Apne phone number se login karein</div>
+    <div id="loginMsg"></div>
+    <div class="form-group">
+      <label>Phone Number</label>
+      <input type="tel" id="loginPhone" placeholder="9876543210">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••">
+    </div>
+    <button class="btn btn-green" onclick="doLogin()">Login Karein</button>
+    <div class="switch-link">Nayi registration? <a onclick="showRegister()">Register Karein →</a></div>
+  </div>
+</div>
+
+<!-- REGISTER SCREEN -->
+<div class="auth-wrap" id="registerScreen" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🌿</div>
+      <div><h1>AgroSense</h1><p>Farmer Intelligence Portal</p></div>
+    </div>
+    <div class="auth-title">Register Karein 🌱</div>
+    <div class="auth-sub">Apna account banayein — bilkul free</div>
+    <div id="regMsg"></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Poora Naam *</label>
+        <input type="text" id="regName" placeholder="Ramesh Kumar">
+      </div>
+      <div class="form-group">
+        <label>Phone *</label>
+        <input type="tel" id="regPhone" placeholder="9876543210">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Email (optional)</label>
+      <input type="email" id="regEmail" placeholder="ramesh@example.com">
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Gaon / Village</label>
+        <input type="text" id="regVillage" placeholder="Malakwal">
+      </div>
+      <div class="form-group">
+        <label>Jila / District</label>
+        <input type="text" id="regDistrict" placeholder="Mandi Bahauddin">
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>State</label>
+        <input type="text" id="regState" placeholder="Punjab">
+      </div>
+      <div class="form-group">
+        <label>Zameen (Acres)</label>
+        <input type="number" id="regAcres" placeholder="5">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Password *</label>
+      <input type="password" id="regPass" placeholder="Strong password banayein">
+    </div>
+    <button class="btn btn-green" onclick="doRegister()">Register Karein</button>
+    <div class="switch-link">Pehle se account hai? <a onclick="showLogin()">Login Karein →</a></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="mainApp">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-icon">🌿</div>
+      <span>AgroSense</span>
+    </div>
+    <div class="farmer-name">Namaskar, <strong id="farmerNameDisplay"></strong> 👨‍🌾</div>
+    <button class="btn-sm btn-logout" onclick="doLogout()">Logout</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')">🏠 Dashboard</button>
+    <button class="tab" onclick="switchTab('addCrop')">🌱 Crop Add Karein</button>
+    <button class="tab" onclick="switchTab('addResidue')">♻️ Residue Add Karein</button>
+    <button class="tab" onclick="switchTab('myListings')">📋 Meri Listings</button>
+  </div>
+
+  <!-- DASHBOARD TAB -->
+  <div class="content" id="tab-dashboard">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-icon">🌱</div><div class="stat-val" id="statCrops">0</div><div class="stat-label">Registered Crops</div></div>
+      <div class="stat-card"><div class="stat-icon">♻️</div><div class="stat-val" id="statResidue">0</div><div class="stat-label">Residue Listings</div></div>
+      <div class="stat-card"><div class="stat-icon">📡</div><div class="stat-val" id="statStatus">Active</div><div class="stat-label">Account Status</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🌾 Meri Recent Crops</div>
+      <div id="dashCrops"><div class="empty-state"><div class="icon">🌱</div><p>Koi crop registered nahi hai abhi</p></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">♻️ Mera Recent Residue</div>
+      <div id="dashResidue"><div class="empty-state"><div class="icon">♻️</div><p>Koi residue listing nahi hai abhi</p></div></div>
+    </div>
+  </div>
+
+  <!-- ADD CROP TAB -->
+  <div class="content" id="tab-addCrop" style="display:none">
+    <div class="card">
+      <div class="card-title">🌱 Nayi Crop Register Karein</div>
+      <div id="cropMsg"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Crop Ka Naam *</label>
+          <input type="text" id="cropName" placeholder="Wheat, Rice, Cotton...">
+        </div>
+        <div class="form-group">
+          <label>Crop Ka Type *</label>
+          <select id="cropType">
+            <option value="">Select karein</option>
+            <option>Grains</option><option>Fruits</option><option>Vegetables</option>
+            <option>Cash Crops</option><option>Pulses</option><option>Oilseeds</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Acres</label>
+          <input type="number" id="cropAcres" placeholder="5.5">
+        </div>
+        <div class="form-group">
+          <label>Health Status</label>
+          <select id="cropHealth">
+            <option>Excellent</option><option>Good</option><option>Fair</option><option>Poor</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Sowing Date</label>
+          <input type="date" id="cropSowing">
+        </div>
+        <div class="form-group">
+          <label>Expected Harvest Date</label>
+          <input type="date" id="cropHarvest">
+        </div>
+      </div>
+      <div class="loc-row">
+        <div class="form-group">
+          <label>Latitude (optional)</label>
+          <input type="number" id="cropLat" placeholder="30.1234" step="any">
+        </div>
+        <div class="form-group">
+          <label>Longitude (optional)</label>
+          <input type="number" id="cropLng" placeholder="74.5678" step="any">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="cropNotes" rows="3" placeholder="Koi extra jankari..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Photo (optional, max 5MB)</label>
+        <input type="file" id="cropPhoto" accept="image/*" onchange="previewPhoto(this,'cropPhotoPreview')">
+        <img id="cropPhotoPreview" class="photo-preview">
+      </div>
+      <button class="btn btn-green" onclick="submitCrop()">✅ Crop Register Karein</button>
+    </div>
+  </div>
+
+  <!-- ADD RESIDUE TAB -->
+  <div class="content" id="tab-addResidue" style="display:none">
+    <div class="card">
+      <div class="card-title">♻️ Crop Residue List Karein</div>
+      <div id="residueMsg"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Residue Type *</label>
+          <select id="resType">
+            <option value="">Select karein</option>
+            <option>Wheat Straw</option><option>Rice Straw</option><option>Sugarcane Bagasse</option>
+            <option>Cotton Stalks</option><option>Corn Stover</option><option>Mustard Straw</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Source Crop</label>
+          <input type="text" id="resCropSource" placeholder="Wheat, Rice...">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Quantity *</label>
+          <input type="number" id="resQty" placeholder="100">
+        </div>
+        <div class="form-group">
+          <label>Unit</label>
+          <select id="resUnit">
+            <option>tons</option><option>quintals</option><option>kg</option><option>bales</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Available From</label>
+          <input type="date" id="resAvailFrom">
+        </div>
+        <div class="form-group">
+          <label>Price (₹)</label>
+          <input type="number" id="resPrice" placeholder="500">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Price Unit</label>
+        <select id="resPriceUnit">
+          <option>per ton</option><option>per quintal</option><option>per kg</option><option>per bale</option><option>fixed total</option>
+        </select>
+      </div>
+      <div class="loc-row">
+        <div class="form-group">
+          <label>Latitude (optional)</label>
+          <input type="number" id="resLat" placeholder="30.1234" step="any">
+        </div>
+        <div class="form-group">
+          <label>Longitude (optional)</label>
+          <input type="number" id="resLng" placeholder="74.5678" step="any">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="resDesc" rows="3" placeholder="Quality, condition, delivery terms..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Photo (optional, max 5MB)</label>
+        <input type="file" id="resPhoto" accept="image/*" onchange="previewPhoto(this,'resPhotoPreview')">
+        <img id="resPhotoPreview" class="photo-preview">
+      </div>
+      <button class="btn btn-green" onclick="submitResidue()">✅ Residue List Karein</button>
+    </div>
+  </div>
+
+  <!-- MY LISTINGS TAB -->
+  <div class="content" id="tab-myListings" style="display:none">
+    <div class="card">
+      <div class="card-title">🌱 Meri Crops</div>
+      <div class="table-wrap" id="myCropsTable"><div class="empty-state"><div class="icon">🌱</div><p>Abhi koi crop nahi</p></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">♻️ Mera Residue</div>
+      <div class="table-wrap" id="myResidueTable"><div class="empty-state"><div class="icon">♻️</div><p>Abhi koi residue nahi</p></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:3000/api';
+let token = localStorage.getItem('farmer_token');
+let farmerName = localStorage.getItem('farmer_name');
+
+// Init
+if (token) showApp();
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('registerScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('farmerNameDisplay').textContent = farmerName;
+  loadDashboard();
+}
+function showRegister() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('registerScreen').style.display = 'flex';
+}
+function showLogin() {
+  document.getElementById('registerScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+async function doLogin() {
+  const phone = document.getElementById('loginPhone').value.trim();
+  const password = document.getElementById('loginPass').value;
+  showMsg('loginMsg', '', '');
+  try {
+    const r = await fetch(`${API}/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({phone, password}) });
+    const d = await r.json();
+    if (!r.ok) return showMsg('loginMsg', d.error, 'error');
+    token = d.token; farmerName = d.farmer.name;
+    localStorage.setItem('farmer_token', token);
+    localStorage.setItem('farmer_name', farmerName);
+    showApp();
+  } catch { showMsg('loginMsg', 'Server se connect nahi ho pa raha. Backend chalu hai?', 'error'); }
+}
+
+async function doRegister() {
+  const body = {
+    name: document.getElementById('regName').value.trim(),
+    phone: document.getElementById('regPhone').value.trim(),
+    email: document.getElementById('regEmail').value.trim(),
+    password: document.getElementById('regPass').value,
+    village: document.getElementById('regVillage').value.trim(),
+    district: document.getElementById('regDistrict').value.trim(),
+    state: document.getElementById('regState').value.trim(),
+    landAcres: document.getElementById('regAcres').value
+  };
+  if (!body.name || !body.phone || !body.password) return showMsg('regMsg', 'Naam, phone aur password zaroori hai', 'error');
+  try {
+    const r = await fetch(`${API}/auth/register`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) return showMsg('regMsg', d.error, 'error');
+    token = d.token; farmerName = d.farmer.name;
+    localStorage.setItem('farmer_token', token);
+    localStorage.setItem('farmer_name', farmerName);
+    showMsg('regMsg', 'Registration successful! 🎉', 'success');
+    setTimeout(showApp, 1000);
+  } catch { showMsg('regMsg', 'Server se connect nahi ho pa raha. Backend chalu hai?', 'error'); }
+}
+
+function doLogout() {
+  localStorage.removeItem('farmer_token');
+  localStorage.removeItem('farmer_name');
+  token = null; farmerName = null;
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function switchTab(tab) {
+  ['dashboard','addCrop','addResidue','myListings'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    el.classList.toggle('active', ['dashboard','addCrop','addResidue','myListings'][i] === tab);
+  });
+  if (tab === 'myListings') loadMyListings();
+  if (tab === 'dashboard') loadDashboard();
+}
+
+async function loadDashboard() {
+  try {
+    const [cr, re] = await Promise.all([
+      fetch(`${API}/crops/my`, { headers:{Authorization:`Bearer ${token}`} }).then(r=>r.json()),
+      fetch(`${API}/residue/my`, { headers:{Authorization:`Bearer ${token}`} }).then(r=>r.json())
+    ]);
+    document.getElementById('statCrops').textContent = cr.crops?.length || 0;
+    document.getElementById('statResidue').textContent = re.residues?.length || 0;
+
+    const crops = cr.crops?.slice(0,3) || [];
+    document.getElementById('dashCrops').innerHTML = crops.length ? `
+      <table><thead><tr><th>Photo</th><th>Crop</th><th>Type</th><th>Acres</th><th>Health</th></tr></thead><tbody>
+      ${crops.map(c => `<tr>
+        <td>${c.photo ? `<img src="http://localhost:3000${c.photo}" class="crop-photo">` : '<div class="no-photo">🌱</div>'}</td>
+        <td>${c.cropName}</td><td>${c.cropType}</td><td>${c.acres}</td>
+        <td><span class="badge badge-${c.healthStatus==='Excellent'||c.healthStatus==='Good'?'green':c.healthStatus==='Fair'?'amber':'red'}">${c.healthStatus}</span></td>
+      </tr>`).join('')}</tbody></table>` :
+      '<div class="empty-state"><div class="icon">🌱</div><p>Koi crop nahi — pehle crop add karein</p></div>';
+
+    const res = re.residues?.slice(0,3) || [];
+    document.getElementById('dashResidue').innerHTML = res.length ? `
+      <table><thead><tr><th>Type</th><th>Qty</th><th>Price</th><th>Status</th></tr></thead><tbody>
+      ${res.map(r => `<tr>
+        <td>${r.residueType}</td><td>${r.quantity} ${r.unit}</td>
+        <td>₹${r.price} ${r.priceUnit}</td>
+        <td><span class="badge badge-green">${r.status}</span></td>
+      </tr>`).join('')}</tbody></table>` :
+      '<div class="empty-state"><div class="icon">♻️</div><p>Koi residue nahi — residue list karein</p></div>';
+  } catch(e) { console.log(e); }
+}
+
+async function submitCrop() {
+  const fd = new FormData();
+  fd.append('cropName', document.getElementById('cropName').value.trim());
+  fd.append('cropType', document.getElementById('cropType').value);
+  fd.append('acres', document.getElementById('cropAcres').value);
+  fd.append('healthStatus', document.getElementById('cropHealth').value);
+  fd.append('sowingDate', document.getElementById('cropSowing').value);
+  fd.append('harvestDate', document.getElementById('cropHarvest').value);
+  fd.append('notes', document.getElementById('cropNotes').value);
+  fd.append('lat', document.getElementById('cropLat').value);
+  fd.append('lng', document.getElementById('cropLng').value);
+  const photo = document.getElementById('cropPhoto').files[0];
+  if (photo) fd.append('photo', photo);
+
+  if (!fd.get('cropName') || !fd.get('cropType')) return showMsg('cropMsg', 'Crop naam aur type zaroori hai', 'error');
+  try {
+    const r = await fetch(`${API}/crops/add`, { method:'POST', headers:{Authorization:`Bearer ${token}`}, body: fd });
+    const d = await r.json();
+    if (!r.ok) return showMsg('cropMsg', d.error, 'error');
+    showMsg('cropMsg', '✅ Crop successfully register ho gayi!', 'success');
+    document.getElementById('cropName').value = '';
+    document.getElementById('cropPhoto').value = '';
+    document.getElementById('cropPhotoPreview').style.display = 'none';
+  } catch { showMsg('cropMsg', 'Server error. Backend chalu hai?', 'error'); }
+}
+
+async function submitResidue() {
+  const fd = new FormData();
+  fd.append('residueType', document.getElementById('resType').value);
+  fd.append('cropSource', document.getElementById('resCropSource').value);
+  fd.append('quantity', document.getElementById('resQty').value);
+  fd.append('unit', document.getElementById('resUnit').value);
+  fd.append('availableFrom', document.getElementById('resAvailFrom').value);
+  fd.append('price', document.getElementById('resPrice').value);
+  fd.append('priceUnit', document.getElementById('resPriceUnit').value);
+  fd.append('description', document.getElementById('resDesc').value);
+  fd.append('lat', document.getElementById('resLat').value);
+  fd.append('lng', document.getElementById('resLng').value);
+  const photo = document.getElementById('resPhoto').files[0];
+  if (photo) fd.append('photo', photo);
+
+  if (!fd.get('residueType') || !fd.get('quantity')) return showMsg('residueMsg', 'Residue type aur quantity zaroori hai', 'error');
+  try {
+    const r = await fetch(`${API}/residue/add`, { method:'POST', headers:{Authorization:`Bearer ${token}`}, body: fd });
+    const d = await r.json();
+    if (!r.ok) return showMsg('residueMsg', d.error, 'error');
+    showMsg('residueMsg', '✅ Residue successfully list ho gayi!', 'success');
+    document.getElementById('resType').value = '';
+    document.getElementById('resQty').value = '';
+    document.getElementById('resPhoto').value = '';
+    document.getElementById('resPhotoPreview').style.display = 'none';
+  } catch { showMsg('residueMsg', 'Server error. Backend chalu hai?', 'error'); }
+}
+
+async function loadMyListings() {
+  try {
+    const [cr, re] = await Promise.all([
+      fetch(`${API}/crops/my`, { headers:{Authorization:`Bearer ${token}`} }).then(r=>r.json()),
+      fetch(`${API}/residue/my`, { headers:{Authorization:`Bearer ${token}`} }).then(r=>r.json())
+    ]);
+
+    const crops = cr.crops || [];
+    document.getElementById('myCropsTable').innerHTML = crops.length ? `
+      <table><thead><tr><th>Photo</th><th>Crop</th><th>Type</th><th>Acres</th><th>Sowing</th><th>Harvest</th><th>Health</th><th>Action</th></tr></thead><tbody>
+      ${crops.map(c => `<tr>
+        <td>${c.photo ? `<img src="http://localhost:3000${c.photo}" class="crop-photo">` : '<div class="no-photo">🌱</div>'}</td>
+        <td><strong>${c.cropName}</strong></td><td>${c.cropType}</td><td>${c.acres}</td>
+        <td>${c.sowingDate||'—'}</td><td>${c.harvestDate||'—'}</td>
+        <td><span class="badge badge-${c.healthStatus==='Excellent'||c.healthStatus==='Good'?'green':'amber'}">${c.healthStatus}</span></td>
+        <td><button class="delete-btn" onclick="deleteCrop('${c.id}')">Delete</button></td>
+      </tr>`).join('')}</tbody></table>` :
+      '<div class="empty-state"><div class="icon">🌱</div><p>Koi crop nahi</p></div>';
+
+    const res = re.residues || [];
+    document.getElementById('myResidueTable').innerHTML = res.length ? `
+      <table><thead><tr><th>Photo</th><th>Type</th><th>Source</th><th>Qty</th><th>Price</th><th>Available</th><th>Status</th><th>Action</th></tr></thead><tbody>
+      ${res.map(r => `<tr>
+        <td>${r.photo ? `<img src="http://localhost:3000${r.photo}" class="crop-photo">` : '<div class="no-photo">♻️</div>'}</td>
+        <td><strong>${r.residueType}</strong></td><td>${r.cropSource||'—'}</td>
+        <td>${r.quantity} ${r.unit}</td><td>₹${r.price} ${r.priceUnit}</td>
+        <td>${r.availableFrom||'—'}</td>
+        <td><span class="badge badge-green">${r.status}</span></td>
+        <td><button class="delete-btn" onclick="deleteResidue('${r.id}')">Delete</button></td>
+      </tr>`).join('')}</tbody></table>` :
+      '<div class="empty-state"><div class="icon">♻️</div><p>Koi residue nahi</p></div>';
+  } catch(e) { console.log(e); }
+}
+
+async function deleteCrop(id) {
+  if (!confirm('Yeh crop delete karein?')) return;
+  await fetch(`${API}/crops/${id}`, { method:'DELETE', headers:{Authorization:`Bearer ${token}`} });
+  loadMyListings(); loadDashboard();
+}
+async function deleteResidue(id) {
+  if (!confirm('Yeh residue delete karein?')) return;
+  await fetch(`${API}/residue/${id}`, { method:'DELETE', headers:{Authorization:`Bearer ${token}`} });
+  loadMyListings(); loadDashboard();
+}
+
+function previewPhoto(input, previewId) {
+  const file = input.files[0];
+  const preview = document.getElementById(previewId);
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+    reader.readAsDataURL(file);
+  }
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  if (!text) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="msg ${type}">${text}</div>`;
+}
+</script>
+</body>
+</html>

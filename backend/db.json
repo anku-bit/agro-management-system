@@ -1,0 +1,19 @@
+{
+  "farmers": [
+    {
+      "id": "ab67851f-87a8-4927-852f-c6fc60129215",
+      "name": "Ankush Verma",
+      "phone": "09045784630",
+      "email": "ankushv2005@gmail.com",
+      "password": "$2a$10$CkZOMcV04l55FreQYDg..ukF5lRkW3dF..p5E7NXjX863oKPZE7hy",
+      "village": "Kaluapur",
+      "district": "Lakhimpur",
+      "state": "Uttar Pradesh",
+      "landAcres": 0,
+      "registeredAt": "2026-03-28T06:31:25.227Z",
+      "active": true
+    }
+  ],
+  "crops": [],
+  "residues": []
+}
